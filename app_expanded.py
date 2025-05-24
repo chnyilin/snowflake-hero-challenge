@@ -10,78 +10,84 @@ def load_data():
 
 df = load_data()
 
+# Session state initialization
+if "journey_started" not in st.session_state:
+    st.session_state.journey_started = False
 if "site_index" not in st.session_state:
     st.session_state.site_index = 0
-if "selected_month" not in st.session_state:
-    st.session_state.selected_month = None
-if "chosen_sites" not in st.session_state:
-    st.session_state.chosen_sites = []
-if "carbon_total" not in st.session_state:
-    st.session_state.carbon_total = 0
+if "collected_sites" not in st.session_state:
+    st.session_state.collected_sites = []
 
-# Season filtering
-month_to_season = {
-    "January": "Winter", "February": "Winter", "March": "Spring", "April": "Summer",
-    "May": "Summer", "June": "Monsoon", "July": "Monsoon", "August": "Monsoon",
-    "September": "Post-monsoon", "October": "Autumn", "November": "Winter", "December": "Winter"
-}
 
-if st.session_state.selected_month is None:
+if not st.session_state.journey_started:
     st.title("🧭 Start Your Cultural Time Travel Journey")
-    month = st.selectbox("Choose your travel month", list(month_to_season.keys()))
+    st.markdown(
+        """
+        Welcome to your immersive exploration of India’s cultural heritage. 
+        Discover timeless destinations, rich narratives, and hidden gems curated just for you.
+
+        Click below to begin your journey!
+        """
+    )
     if st.button("Begin Journey"):
-        st.session_state.selected_month = month_to_season[month]
-        df_filtered = df[df['best_season'] == st.session_state.selected_month]
-        st.session_state.df_filtered = df_filtered.reset_index(drop=True)
+        st.session_state.df_filtered = df.reset_index(drop=True)  # show all sites
+        st.session_state.journey_started = True
         st.rerun()
 else:
     df_filtered = st.session_state.df_filtered
     if st.session_state.site_index < len(df_filtered):
         site = df_filtered.iloc[st.session_state.site_index]
 
-        st.title(f"{site['location']} — {site['artifact_name_2023']}")
-        st.image(site["image_url"], use_column_width=True)
+        # Title with clickable link to gov report
+        site_title = f"[{site['location']}]({site['gov_report_url']})"
+        st.markdown(f"## {site_title}")
 
-        st.subheader("🕰 Choose a Year to Preserve")
-        years = [site["year_1"], site["year_2"], site["year_3"]]
-        descriptions = [site["year_1_description"], site["year_2_description"], site["year_3_description"]]
-        visitors = [site["year_1_visitors"], site["year_2_visitors"], site["year_3_visitors"]]
-        artifact_names = [site["artifact_name_1530"], site["artifact_name_2023"], site["artifact_name_2045"]]
-        artifact_images = [site["artifact_image_url_1530"], site["artifact_image_url_2023"], site["artifact_image_url_2045"]]
+        # Side-by-side layout: bigger image, smaller description
+        img_col, desc_col = st.columns([4, 2])  # 4:2 = 2/3 of screen for image
 
-        col1, col2, col3 = st.columns(3)
-        for i, col in enumerate([col1, col2, col3]):
-            with col:
-                st.markdown(f"### {years[i]}")
-                st.write(descriptions[i])
-                st.image(artifact_images[i], caption=artifact_names[i], use_column_width=True)
-                st.write(f"🧍 Visitors: {visitors[i]:,}")
-                if st.button(f"Preserve {years[i]}", key=f"year_{i}"):
-                    st.session_state.chosen_sites.append({
-                        "location": site["location"],
-                        "year": years[i],
-                        "description": descriptions[i],
-                        "artifact": artifact_names[i],
-                        "theme": site["cultural_theme"],
-                        "gov_support": site["gov_support_program"],
-                        "season": site["best_season"],
-                        "carbon": site["carbon_impact"],
-                        "days": site["travel_days"],
-                        "lat": site["lat"],
-                        "lon": site["lon"]
-                    })
-                    st.session_state.carbon_total += site["carbon_impact"]
-                    st.session_state.site_index += 1
-                    st.rerun()
+        with img_col:
+            st.image(site["image_url"], use_container_width=True)
+
+        with desc_col:
+            try:
+                import requests
+                description_text = requests.get(site["description_url"]).text
+                st.markdown(description_text)
+            except:
+                st.warning("Description not available.")
+
+
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            if st.button("🪔 Collect Artifact"):
+                st.session_state.collected_sites.append({
+                    "location": site["location"],
+                    "image": site["artifact_image_url"],
+                })
+        with col2:
+            if st.button("Continue to Next Site"):
+                st.session_state.site_index += 1
+                st.rerun()
+
     else:
         st.title("🧳 Your Cultural Revival Route")
-        total_days = sum(site["days"] for site in st.session_state.chosen_sites)
-        for site in st.session_state.chosen_sites:
-            st.subheader(f"{site['location']} — Preserved in {site['year']}")
-            st.write(site["description"])
-            st.caption(f"🪔 Artifact: {site['artifact']} | Theme: {site['theme']} | Season: {site['season']} | Support: {site['gov_support']}")
-        st.markdown("---")
-        st.success(f"🌿 Total Estimated Carbon Footprint: {st.session_state.carbon_total} kg CO₂")
-        st.info(f"📅 Total Travel Time: {total_days} days")
 
-        st.markdown("A map view and optimized route planner will be available in the next version.")
+        if st.session_state.collected_sites:
+            st.markdown("## 🧳 Collected Artifacts")
+
+            for i in range(0, len(st.session_state.collected_sites), 3):
+                cols = st.columns(3)
+                for j in range(3):
+                    if i + j < len(st.session_state.collected_sites):
+                        item = st.session_state.collected_sites[i + j]
+                        with cols[j]:
+                            st.image(item["image"], caption=item["location"], use_container_width=True)
+        else:
+            st.info("You didn't collect any artifacts along the way.")
+
+        # Restart option
+        if st.button("🔄 Restart Journey"):
+            st.session_state.site_index = 0
+            st.session_state.journey_started = False
+            st.session_state.collected_sites = []
+            st.rerun()

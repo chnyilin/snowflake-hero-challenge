@@ -1,4 +1,4 @@
-#!/Users/chenyilin/Desktop/snowflake-hero-challenge/venv/bin/python3
+#!/Users/chenyilin/Desktop/snowflake-hackathon/snowflake-hero-challenge/venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys

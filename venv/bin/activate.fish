@@ -29,7 +29,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV "/Users/chenyilin/Desktop/snowflake-hero-challenge/venv"
+set -gx VIRTUAL_ENV "/Users/chenyilin/Desktop/snowflake-hackathon/snowflake-hero-challenge/venv"
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/bin" $PATH
