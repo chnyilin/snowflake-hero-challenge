@@ -12,7 +12,7 @@ Simple, accessible Streamlit web interface
 How to Run the App
 
 1. Clone the Repository
-git clone https://github.com/YOUR-USERNAME/YOUR-REPO-NAME.git
+git clone https://github.com/chnyilin/snowflake-hero-challenge.git
 cd YOUR-REPO-NAME
 2. Install Dependencies
 (Optional) Create a virtual environment:
@@ -22,6 +22,7 @@ source venv/bin/activate    # On Windows: venv\Scripts\activate
 Install all required packages:
 
 pip install -r requirements.txt
+
 3. Launch the Streamlit App
 streamlit run app.py
 (If your main file has a different name, replace app.py with the correct filename.)
