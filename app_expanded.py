@@ -10,6 +10,8 @@ def load_data():
 
 df = load_data()
 
+
+
 # Session state initialization
 if "journey_started" not in st.session_state:
     st.session_state.journey_started = False
